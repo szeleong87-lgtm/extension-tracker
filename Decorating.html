@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Decorating — Extension Tracker</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <nav class="crumbs"><a href="index.html">&larr; Home</a></nav>
+  <main>
+    <h1>Decorating</h1>
+    <div id="category"></div>
+  </main>
+
+  <script src="data.js"></script>
+  <script src="common.js"></script>
+  <script>
+    const category = EXTENSION_DATA.categories.find((c) => c.id === "decorating");
+    renderCategory(category, document.getElementById("category"));
+  </script>
+</body>
+</html>
