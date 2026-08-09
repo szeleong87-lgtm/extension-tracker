@@ -39,7 +39,6 @@ const EXTENSION_DATA = {
       name: "Build Costs",
       page: "build-costs.html",
       items: [
-       
         // From the (non-builder) estimated cost breakdown, ex. VAT:
         { name: "Preliminaries", estimate: 14351.72, actual: 0 },
         { name: "Demolitions", estimate: 1444.11, actual: 0 },
