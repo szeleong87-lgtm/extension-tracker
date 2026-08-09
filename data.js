@@ -86,7 +86,6 @@ const EXTENSION_DATA = {
         // itemized placeholders above (Radiators/Aircon/Underfloor heating,
         // and Oven/Dishwasher/Hob/Extractor fan); not yet split out.
         { name: "Heating and cooling", estimate: 6561.61, actual: 0 },
-        { name: "Wired appliances", estimate: 2194.51, actual: 0 },
         { name: "Units, worktops and appliances", estimate: 16245.17, actual: 0 },
       ],
     },
@@ -97,7 +96,6 @@ const EXTENSION_DATA = {
       items: [
         { name: "Rewire + sockets", estimate: 2200, actual: 0 },
         // From the estimated cost breakdown, ex. VAT:
-        { name: "Wiring and fuseboards", estimate: 1427.80, actual: 0 },
       ],
     },
     {
@@ -117,9 +115,6 @@ const EXTENSION_DATA = {
       items: [
         { name: "Painting", estimate: 2600, actual: 0 },
         // From the estimated cost breakdown, ex. VAT:
-        { name: "Ceiling preparation and finishes", estimate: 806.40, actual: 0 },
-        { name: "Wall preparation and finishes", estimate: 1893.12, actual: 0 },
-        { name: "Decoration", estimate: 3566.84, actual: 0 },
       ],
     },
     {
