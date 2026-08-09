@@ -40,6 +40,7 @@ const EXTENSION_DATA = {
       page: "build-costs.html",
       items: [
         { name: "Groundworks", estimate: 8500, actual: 0 },
+        { name: "Shell", estimate: 10000, actual: 0 },
       ],
     },
     {
