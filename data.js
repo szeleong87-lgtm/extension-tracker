@@ -87,6 +87,7 @@ const EXTENSION_DATA = {
         // and Oven/Dishwasher/Hob/Extractor fan); not yet split out.
         { name: "Heating and cooling", estimate: 6561.61, actual: 0 },
         { name: "Units, worktops and appliances", estimate: 16245.17, actual: 0 },
+        { name: "Pantry shelving", estimate: 0, actual: 0 },
       ],
     },
     {
