@@ -1,15 +1,15 @@
 // ---------------------------------------------------------------------------
-// Extension cost data â single source of truth for the whole site.
+// Extension cost data — single source of truth for the whole site.
 //
 // To add, edit, or remove a cost line, find its category below and
 // change the `items` array:
 //   { name: "Item name", estimate: 1234.56, actual: 0 }
 //
 // `estimate` and `actual` are plain numbers (no currency symbol, no commas).
-// Leave `actual` as 0 until you have a real figure (invoice, receipt, etc.) â
+// Leave `actual` as 0 until you have a real figure (invoice, receipt, etc.) —
 // totals use `actual` once it's set, and fall back to `estimate` until then.
 //
-// Every page reads straight from this file â there is no editing on the
+// Every page reads straight from this file — there is no editing on the
 // webpage itself, and nothing is saved in the browser. Save this file and
 // refresh the page to see changes.
 //
@@ -51,8 +51,8 @@ const EXTENSION_DATA = {
         { name: "Ceiling structure and lining", estimate: 522.62, actual: 0 },
         { name: "Internal doors and frames", estimate: 1068.66, actual: 0 },
         { name: "Drainage and pipework", estimate: 2768.01, actual: 0 },
-        // VAT at 20% on the Â£112,993.53 estimated breakdown above (that
-        // figure was ex. VAT) â adjust if your VAT position differs.
+        // VAT at 20% on the £112,993.53 estimated breakdown above (that
+        // figure was ex. VAT) — adjust if your VAT position differs.
         { name: "VAT (20%) on estimated breakdown", estimate: 22598.71, actual: 0 },
       ],
     },
@@ -83,7 +83,7 @@ const EXTENSION_DATA = {
         { name: "Radiators", estimate: 0, actual: 0 },
         { name: "Aircon", estimate: 0, actual: 0 },
         { name: "Underfloor heating", estimate: 0, actual: 0 },
-        // From the estimated cost breakdown, ex. VAT â lump sums covering the
+        // From the estimated cost breakdown, ex. VAT — lump sums covering the
         // itemized placeholders above (Radiators/Aircon/Underfloor heating,
         // and Oven/Dishwasher/Hob/Extractor fan); not yet split out.
         { name: "Heating and cooling", estimate: 6561.61, actual: 0 },
