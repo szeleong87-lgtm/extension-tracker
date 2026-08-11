@@ -32,7 +32,7 @@ const EXTENSION_DATA = {
         { name: "Architect", estimate: 3000, actual: 4050},
         { name: "Planning permission", estimate: 1500, actual: 695},
 
-      ,
+      ],
     },
     {
       id: "build-costs",
