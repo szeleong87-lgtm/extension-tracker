@@ -141,7 +141,7 @@ async function renderAdminPage(env, message) {
 </head>
 <body>
   <h1>Manage Extension Tracker</h1>
-  <p><a href="/data.json">/data.json</a></p>
+  <p><a href="https://szeleong87-lgtm.github.io/extension-tracker/">&larr; Back to tracker</a> &middot; <a href="/data.json">/data.json</a></p>
   ${message || ""}
 
   <section>
