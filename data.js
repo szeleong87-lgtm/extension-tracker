@@ -32,7 +32,7 @@ const EXTENSION_DATA = {
     {
       id: "planning",
       name: "Planning",
-      page: "Planning.html",
+      page: "pages/Planning.html",
       items: [
         { name: "Architect", estimate: 3000, actual: 4050},
         { name: "Planning permission", estimate: 1500, actual: 695},
@@ -42,7 +42,7 @@ const EXTENSION_DATA = {
     {
       id: "build-costs",
       name: "Build Costs",
-      page: "build-costs.html",
+      page: "pages/build-costs.html",
       items: [
         // From the (non-builder) estimated cost breakdown, ex. VAT:
         { name: "Preliminaries", estimate: 14351.72, actual: 0 },
@@ -64,7 +64,7 @@ const EXTENSION_DATA = {
     {
       id: "glazing",
       name: "Glazing",
-      page: "glazing.html",
+      page: "pages/glazing.html",
       items: [
          { name: "Bifold doors", estimate: 3800, actual: 0 },
          { name: "Roof lantern", estimate: 1200, actual: 0 },
@@ -77,7 +77,7 @@ const EXTENSION_DATA = {
     {
       id: "kitchen",
       name: "Kitchen",
-      page: "kitchen.html",
+      page: "pages/kitchen.html",
       items: [
         { name: "Units", estimate: 0, actual: 0 },
         { name: "Oven", estimate: 0, actual: 0 },
@@ -99,7 +99,7 @@ const EXTENSION_DATA = {
     {
       id: "electrics",
       name: "Electrics",
-      page: "electrics.html",
+      page: "pages/electrics.html",
       items: [
         { name: "Rewire + sockets", estimate: 2200, actual: 0 },
         // From the estimated cost breakdown, ex. VAT:
@@ -108,7 +108,7 @@ const EXTENSION_DATA = {
     {
       id: "flooring",
       name: "Flooring",
-      page: "flooring.html",
+      page: "pages/flooring.html",
       items: [
         { name: "Tiles", estimate: 2600, actual: 0 },
         // From the estimated cost breakdown, ex. VAT:
@@ -118,7 +118,7 @@ const EXTENSION_DATA = {
     {
       id: "decorating",
       name: "Decorating",
-      page: "decorating.html",
+      page: "pages/decorating.html",
       items: [
         { name: "Painting", estimate: 2600, actual: 0 },
         // From the estimated cost breakdown, ex. VAT:
@@ -127,7 +127,7 @@ const EXTENSION_DATA = {
     {
       id: "snug",
       name: "Snug",
-      page: "snug.html",
+      page: "pages/snug.html",
       items: [
         { name: "Sofa", estimate: 1100, actual: 0 },
         { name: "TV", estimate: 1200, actual: 0 },

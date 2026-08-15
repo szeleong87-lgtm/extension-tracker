@@ -95,8 +95,15 @@ data.categories.forEach((cat, i) => {
 });
 
 // Every category page .html file in the repo (that renders a category) should
-// be linked from data.js — catches an orphaned or renamed page file.
-const htmlFiles = fs.readdirSync(rootDir).filter((f) => f.toLowerCase().endsWith(".html"));
+// be linked from data.js — catches an orphaned or renamed page file. Category
+// pages live in pages/, alongside index.html at the root.
+const htmlFiles = [
+  ...fs.readdirSync(rootDir).filter((f) => f.toLowerCase().endsWith(".html")),
+  ...fs
+    .readdirSync(path.join(rootDir, "pages"))
+    .filter((f) => f.toLowerCase().endsWith(".html"))
+    .map((f) => path.join("pages", f)),
+];
 htmlFiles.forEach((file) => {
   if (file.toLowerCase() === "index.html") return;
   const contents = fs.readFileSync(path.join(rootDir, file), "utf8");

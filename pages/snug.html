@@ -3,17 +3,17 @@
 <head>
   <meta charset="utf-8" />
   <title>Snug — Extension Tracker</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="../style.css" />
 </head>
 <body>
-  <nav class="crumbs"><a href="index.html">&larr; Home</a></nav>
+  <nav class="crumbs"><a href="../index.html">&larr; Home</a></nav>
   <main>
     <h1>Snug</h1>
     <div id="category"></div>
   </main>
 
-  <script src="data.js"></script>
-  <script src="common.js"></script>
+  <script src="../data.js"></script>
+  <script src="../common.js"></script>
   <script>
     loadExtensionData().then((data) => {
       const category = data.categories.find((c) => c.id === "snug");
