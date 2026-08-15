@@ -15,8 +15,10 @@
   <script src="data.js"></script>
   <script src="common.js"></script>
   <script>
-    const category = EXTENSION_DATA.categories.find((c) => c.id === "planning");
-    renderCategory(category, document.getElementById("category"));
+    loadExtensionData().then((data) => {
+      const category = data.categories.find((c) => c.id === "planning");
+      renderCategory(category, document.getElementById("category"));
+    });
   </script>
 </body>
 </html>

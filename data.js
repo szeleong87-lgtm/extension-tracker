@@ -1,20 +1,25 @@
 // ---------------------------------------------------------------------------
-// Extension cost data — single source of truth for the whole site.
+// Extension cost data — FALLBACK ONLY.
 //
-// To add, edit, or remove a cost line, find its category below and
-// change the `items` array:
-//   { name: "Item name", estimate: 1234.56, actual: 0 }
+// The live numbers (budget, estimate, actual) now live in Cloudflare KV, not
+// here — edit them at https://extension-tracker-add-item.jslchng.workers.dev/
+// and changes appear on next page load, no commit or deploy needed. Every
+// page fetches that live data first (see loadExtensionData() in common.js)
+// and only falls back to this file if the Worker/KV is unreachable.
 //
-// `estimate` and `actual` are plain numbers (no currency symbol, no commas).
-// Leave `actual` as 0 until you have a real figure (invoice, receipt, etc.) —
-// totals use `actual` once it's set, and fall back to `estimate` until then.
+// Because of that, this file is a frozen snapshot — it is NOT kept in sync
+// with KV automatically, and editing numbers here has no effect on the live
+// site under normal operation. It exists purely so the site still shows
+// *something* if the Worker ever goes down.
 //
-// Every page reads straight from this file — there is no editing on the
-// webpage itself, and nothing is saved in the browser. Save this file and
-// refresh the page to see changes.
-//
-// index.html sums every category into a grand total automatically.
-// Each category's own page (e.g. kitchen.html) lists just its items.
+// The category *shells* (id/name/page) below are also mirrored in
+// worker.js's CATEGORIES list, which drives the admin page's dropdowns —
+// keep the two in sync if you ever add/rename a category. Adding a whole new
+// category still needs a new .html page too (see the other category pages
+// for the pattern). Individual *items*, though, can now be added straight
+// from the admin page without touching this file at all — new items live
+// only in KV until/unless you manually copy them back here to refresh this
+// fallback snapshot.
 // ---------------------------------------------------------------------------
 
 const EXTENSION_DATA = {

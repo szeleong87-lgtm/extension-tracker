@@ -17,8 +17,10 @@
   <script src="data.js"></script>
   <script src="common.js"></script>
   <script>
-    renderBudget(EXTENSION_DATA, document.getElementById("budget"));
-    renderSummary(EXTENSION_DATA, document.getElementById("summary"));
+    loadExtensionData().then((data) => {
+      renderBudget(data, document.getElementById("budget"));
+      renderSummary(data, document.getElementById("summary"));
+    });
   </script>
 </body>
 </html>

@@ -1,19 +1,26 @@
-// Cloudflare Worker: a password-gated form that adds a new item to data.js
-// in the extension-tracker GitHub repo, by committing the change via
-// GitHub's API — no hand-editing needed. That commit triggers the repo's
-// own CI/CD pipeline (test, then deploy) exactly like any other push.
+// Cloudflare Worker: reads/writes the extension-tracker's cost data from a
+// Workers KV namespace, instead of that data living hardcoded in data.js.
+//
+// - GET  /data.json    — public, CORS-enabled JSON of the current data.
+//                         The site's pages fetch this at load time.
+// - GET  /             — password-gated admin page: add an item, edit an
+//                         existing item's price, or edit the overall budget.
+// - POST /submit       — add a new item.
+// - POST /edit-price   — update an existing item's estimate/actual.
+// - POST /edit-budget  — update the overall budget.
+//
+// Changes here take effect immediately (no git commit, no CI/CD wait).
+// data.js in the repo is kept only as a static fallback in case this Worker
+// or KV is ever unreachable — it is not updated automatically by this file.
 //
 // Secrets required (set via `wrangler secret put <NAME>`):
-//   GITHUB_TOKEN   — fine-grained PAT, Contents: Read and write, scoped to
-//                    this repo only.
-//   FORM_PASSWORD  — the shared password required to submit the form.
+//   FORM_PASSWORD  — the shared password required to submit any form here.
 
-const OWNER = "szeleong87-lgtm";
-const REPO = "extension-tracker";
-const BRANCH = "main";
-const DATA_PATH = "data.js";
+const KV_KEY = "data";
 
-// Keep this in sync with data.js's categories if you ever add/rename one.
+// Keep this in sync with data.js's categories if you ever add/rename one
+// (adding a whole new category still needs a new .html page, so isn't
+// something this form can do).
 const CATEGORIES = [
   { id: "planning", name: "Planning" },
   { id: "build-costs", name: "Build Costs" },
@@ -30,16 +37,67 @@ export default {
     const url = new URL(request.url);
 
     if (request.method === "GET" && url.pathname === "/") {
-      return html(renderForm());
+      return renderAdminPage(env);
+    }
+
+    if (request.method === "GET" && url.pathname === "/data.json") {
+      return getData(env);
     }
 
     if (request.method === "POST" && url.pathname === "/submit") {
       return handleSubmit(request, env);
     }
 
+    if (request.method === "POST" && url.pathname === "/edit-price") {
+      return handleEditPrice(request, env);
+    }
+
+    if (request.method === "POST" && url.pathname === "/edit-budget") {
+      return handleEditBudget(request, env);
+    }
+
     return new Response("Not found", { status: 404 });
   },
 };
+
+// ---------------------------------------------------------------------------
+// KV read/write
+// ---------------------------------------------------------------------------
+
+async function readData(env) {
+  const data = await env.EXTENSION_DATA.get(KV_KEY, "json");
+  if (!data) throw new Error("No data found in KV — has it been seeded?");
+  return data;
+}
+
+async function writeData(env, data) {
+  await env.EXTENSION_DATA.put(KV_KEY, JSON.stringify(data));
+}
+
+async function getData(env) {
+  try {
+    const data = await readData(env);
+    return new Response(JSON.stringify(data), {
+      headers: {
+        "content-type": "application/json; charset=utf-8",
+        "access-control-allow-origin": "*",
+        "cache-control": "no-store",
+      },
+    });
+  } catch (err) {
+    return new Response(JSON.stringify({ error: err.message }), {
+      status: 500,
+      headers: {
+        "content-type": "application/json; charset=utf-8",
+        "access-control-allow-origin": "*",
+      },
+    });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Admin page
+// ---------------------------------------------------------------------------
 
 function html(body, status = 200) {
   return new Response(body, {
@@ -48,47 +106,136 @@ function html(body, status = 200) {
   });
 }
 
-function renderForm(message) {
-  const options = CATEGORIES.map((c) => `<option value="${c.id}">${c.name}</option>`).join("");
-  return `<!DOCTYPE html>
+async function renderAdminPage(env, message) {
+  let data;
+  try {
+    data = await readData(env);
+  } catch (err) {
+    return html(`<p>Failed to load data from KV: ${escapeHtml(err.message)}</p>`, 500);
+  }
+
+  const categoryOptions = CATEGORIES.map((c) => `<option value="${c.id}">${c.name}</option>`).join("");
+  const itemsByCategory = {};
+  data.categories.forEach((cat) => {
+    itemsByCategory[cat.id] = cat.items.map((i) => ({ name: i.name, estimate: i.estimate, actual: i.actual }));
+  });
+  const itemsJson = JSON.stringify(itemsByCategory).replace(/</g, "\\u003c");
+
+  return html(`<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Add Item — Extension Tracker</title>
+  <title>Manage — Extension Tracker</title>
   <style>
-    body { font-family: -apple-system, sans-serif; max-width: 420px; margin: 3rem auto; padding: 0 1rem; color: #2c2a26; }
+    body { font-family: -apple-system, sans-serif; max-width: 480px; margin: 3rem auto; padding: 0 1rem; color: #2c2a26; }
+    h1 { margin-bottom: 0.25rem; }
+    h2 { margin-top: 0; font-size: 1.1rem; }
+    section { border: 1px solid #ddd; border-radius: 8px; padding: 1rem 1.25rem 1.25rem; margin-top: 1.5rem; }
     label { display: block; margin-top: 1rem; font-size: 0.9rem; }
     input, select { width: 100%; padding: 0.5rem; margin-top: 0.25rem; box-sizing: border-box; font: inherit; }
     button { margin-top: 1.5rem; padding: 0.6rem 1.2rem; font: inherit; cursor: pointer; }
-    .message { margin-top: 1rem; padding: 0.75rem; border-radius: 6px; font-size: 0.9rem; }
+    .message { margin-bottom: 1.5rem; padding: 0.75rem; border-radius: 6px; font-size: 0.9rem; }
     .success { background: #e5f6e5; color: #1a5c1a; }
     .error { background: #fbe5e5; color: #8a1a1a; }
   </style>
 </head>
 <body>
-  <h1>Add an item</h1>
+  <h1>Manage Extension Tracker</h1>
+  <p><a href="/data.json">/data.json</a></p>
   ${message || ""}
-  <form method="POST" action="/submit">
-    <label>Category
-      <select name="category" required>${options}</select>
-    </label>
-    <label>Item name
-      <input type="text" name="name" required />
-    </label>
-    <label>Estimate
-      <input type="number" step="0.01" name="estimate" value="0" required />
-    </label>
-    <label>Actual
-      <input type="number" step="0.01" name="actual" value="0" required />
-    </label>
-    <label>Password
-      <input type="password" name="password" required />
-    </label>
-    <button type="submit">Add item</button>
-  </form>
+
+  <section>
+    <h2>Edit an item's price</h2>
+    <form method="POST" action="/edit-price">
+      <label>Category
+        <select name="category" id="ep-category">${categoryOptions}</select>
+      </label>
+      <label>Item
+        <select name="name" id="ep-item"></select>
+      </label>
+      <label>Estimate
+        <input type="number" step="0.01" name="estimate" id="ep-estimate" required />
+      </label>
+      <label>Actual
+        <input type="number" step="0.01" name="actual" id="ep-actual" required />
+      </label>
+      <label>Password
+        <input type="password" name="password" required />
+      </label>
+      <button type="submit">Update price</button>
+    </form>
+  </section>
+
+  <section>
+    <h2>Add a new item</h2>
+    <form method="POST" action="/submit">
+      <label>Category
+        <select name="category" required>${categoryOptions}</select>
+      </label>
+      <label>Item name
+        <input type="text" name="name" required />
+      </label>
+      <label>Estimate
+        <input type="number" step="0.01" name="estimate" value="0" required />
+      </label>
+      <label>Actual
+        <input type="number" step="0.01" name="actual" value="0" required />
+      </label>
+      <label>Password
+        <input type="password" name="password" required />
+      </label>
+      <button type="submit">Add item</button>
+    </form>
+  </section>
+
+  <section>
+    <h2>Edit overall budget</h2>
+    <form method="POST" action="/edit-budget">
+      <label>Budget
+        <input type="number" step="0.01" name="budget" value="${data.budget}" required />
+      </label>
+      <label>Password
+        <input type="password" name="password" required />
+      </label>
+      <button type="submit">Update budget</button>
+    </form>
+  </section>
+
+  <script>
+    const ITEMS = ${itemsJson};
+    const categorySelect = document.getElementById("ep-category");
+    const itemSelect = document.getElementById("ep-item");
+    const estimateInput = document.getElementById("ep-estimate");
+    const actualInput = document.getElementById("ep-actual");
+
+    function populateItems() {
+      const items = ITEMS[categorySelect.value] || [];
+      itemSelect.innerHTML = items
+        .map((i) => \`<option value="\${i.name}">\${i.name}</option>\`)
+        .join("");
+      prefill();
+    }
+
+    function prefill() {
+      const items = ITEMS[categorySelect.value] || [];
+      const item = items.find((i) => i.name === itemSelect.value);
+      if (item) {
+        estimateInput.value = item.estimate;
+        actualInput.value = item.actual;
+      }
+    }
+
+    categorySelect.addEventListener("change", populateItems);
+    itemSelect.addEventListener("change", prefill);
+    populateItems();
+  </script>
 </body>
-</html>`;
+</html>`);
 }
+
+// ---------------------------------------------------------------------------
+// Form handlers
+// ---------------------------------------------------------------------------
 
 async function handleSubmit(request, env) {
   const form = await request.formData();
@@ -99,100 +246,74 @@ async function handleSubmit(request, env) {
   const actual = Number(form.get("actual"));
 
   if (password !== env.FORM_PASSWORD) {
-    return html(renderForm(`<div class="message error">Wrong password.</div>`), 403);
+    return renderAdminPage(env, `<div class="message error">Wrong password.</div>`);
   }
   if (!name || Number.isNaN(estimate) || Number.isNaN(actual)) {
-    return html(renderForm(`<div class="message error">Fill in every field with valid values.</div>`), 400);
+    return renderAdminPage(env, `<div class="message error">Fill in every field with valid values.</div>`);
   }
   const category = CATEGORIES.find((c) => c.id === categoryId);
   if (!category) {
-    return html(renderForm(`<div class="message error">Unknown category.</div>`), 400);
+    return renderAdminPage(env, `<div class="message error">Unknown category.</div>`);
   }
 
-  try {
-    await addItemToDataJs(env, category, { name, estimate, actual });
-  } catch (err) {
-    return html(renderForm(`<div class="message error">GitHub update failed: ${escapeHtml(err.message)}</div>`), 500);
+  const data = await readData(env);
+  const cat = data.categories.find((c) => c.id === categoryId);
+  if (!cat) {
+    return renderAdminPage(env, `<div class="message error">Category "${escapeHtml(categoryId)}" not found in KV data.</div>`);
+  }
+  cat.items.push({ name, estimate, actual });
+  await writeData(env, data);
+
+  return renderAdminPage(env, `<div class="message success">Added "${escapeHtml(name)}" to ${category.name}.</div>`);
+}
+
+async function handleEditPrice(request, env) {
+  const form = await request.formData();
+  const password = form.get("password");
+  const categoryId = form.get("category");
+  const name = (form.get("name") || "").toString().trim();
+  const estimate = Number(form.get("estimate"));
+  const actual = Number(form.get("actual"));
+
+  if (password !== env.FORM_PASSWORD) {
+    return renderAdminPage(env, `<div class="message error">Wrong password.</div>`);
+  }
+  if (!name || Number.isNaN(estimate) || Number.isNaN(actual)) {
+    return renderAdminPage(env, `<div class="message error">Fill in every field with valid values.</div>`);
   }
 
-  return html(
-    renderForm(
-      `<div class="message success">Added "${escapeHtml(name)}" to ${category.name}. Live site updates in a minute or two once CI/CD finishes.</div>`
-    )
-  );
+  const data = await readData(env);
+  const cat = data.categories.find((c) => c.id === categoryId);
+  const item = cat && cat.items.find((i) => i.name === name);
+  if (!item) {
+    return renderAdminPage(env, `<div class="message error">Could not find "${escapeHtml(name)}" in that category.</div>`);
+  }
+  item.estimate = estimate;
+  item.actual = actual;
+  await writeData(env, data);
+
+  return renderAdminPage(env, `<div class="message success">Updated price for "${escapeHtml(name)}".</div>`);
+}
+
+async function handleEditBudget(request, env) {
+  const form = await request.formData();
+  const password = form.get("password");
+  const budget = Number(form.get("budget"));
+
+  if (password !== env.FORM_PASSWORD) {
+    return renderAdminPage(env, `<div class="message error">Wrong password.</div>`);
+  }
+  if (Number.isNaN(budget)) {
+    return renderAdminPage(env, `<div class="message error">Enter a valid budget.</div>`);
+  }
+
+  const data = await readData(env);
+  data.budget = budget;
+  await writeData(env, data);
+
+  return renderAdminPage(env, `<div class="message success">Updated budget to ${budget}.</div>`);
 }
 
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-}
-
-async function addItemToDataJs(env, category, item) {
-  const apiBase = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${DATA_PATH}`;
-  const headers = {
-    Authorization: `Bearer ${env.GITHUB_TOKEN}`,
-    "User-Agent": "extension-tracker-add-item-worker",
-    Accept: "application/vnd.github+json",
-  };
-
-  const getRes = await fetch(`${apiBase}?ref=${BRANCH}`, { headers });
-  if (!getRes.ok) throw new Error(`Could not read data.js (${getRes.status})`);
-  const fileData = await getRes.json();
-  const content = base64ToUtf8(fileData.content);
-
-  const updated = insertItem(content, category.id, item);
-  if (updated === content) throw new Error(`Could not find category "${category.id}" in data.js`);
-
-  const putRes = await fetch(apiBase, {
-    method: "PUT",
-    headers: { ...headers, "content-type": "application/json" },
-    body: JSON.stringify({
-      message: `Add "${item.name}" to ${category.name} (via add-item form)`,
-      content: utf8ToBase64(updated),
-      sha: fileData.sha,
-      branch: BRANCH,
-    }),
-  });
-  if (!putRes.ok) {
-    const err = await putRes.json().catch(() => ({}));
-    throw new Error(err.message || `GitHub API error (${putRes.status})`);
-  }
-}
-
-// Finds the category's `items: [` block and inserts the new item as the
-// last line before its closing `],` — a targeted text edit that leaves
-// every existing comment and item untouched. Depends on data.js keeping
-// its current indentation (6-space `items: [` / `      ],`); the repo's
-// own validate-data.js check will still catch it if that ever breaks.
-function insertItem(source, categoryId, item) {
-  const idIndex = source.indexOf(`id: "${categoryId}"`);
-  if (idIndex === -1) return source;
-
-  const itemsIndex = source.indexOf("items: [", idIndex);
-  if (itemsIndex === -1) return source;
-
-  const closeIndex = source.indexOf("\n      ],", itemsIndex);
-  if (closeIndex === -1) return source;
-
-  const line = `\n        { name: ${JSON.stringify(item.name)}, estimate: ${item.estimate}, actual: ${item.actual} },`;
-  return source.slice(0, closeIndex) + line + source.slice(closeIndex);
-}
-
-// GitHub's Contents API returns/accepts file content as base64 of the raw
-// UTF-8 bytes. atob()/btoa() alone only handle Latin-1 (one byte per JS
-// char), so round-tripping any non-ASCII text (£, —, etc.) through them
-// directly silently corrupts it. TextEncoder/TextDecoder do the UTF-8 part
-// correctly; atob()/btoa() are only used here for the base64 <-> bytes step.
-function base64ToUtf8(base64) {
-  const binary = atob(base64.replace(/\n/g, ""));
-  const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
-  return new TextDecoder("utf-8").decode(bytes);
-}
-
-function utf8ToBase64(str) {
-  const bytes = new TextEncoder().encode(str);
-  let binary = "";
-  bytes.forEach((b) => {
-    binary += String.fromCharCode(b);
-  });
-  return btoa(binary);
 }

@@ -1,9 +1,30 @@
 // Shared rendering helpers used by index.html and every category page.
-// Everything here renders straight from data.js's EXTENSION_DATA — there is
-// no editing on the page and nothing is saved in the browser. To change a
-// number or add/remove an item, edit data.js directly and refresh.
+// Cost data (item prices and the overall budget) lives in Cloudflare KV, not
+// in this repo — edit it at the Worker's admin page, and changes show up on
+// next page load, no code change or deploy needed. Category/item *names*
+// still live in data.js. There is no editing on the page itself.
 
 const CURRENCY = "£";
+
+// The Worker that serves the live data and hosts the admin forms.
+const DATA_API_URL = "https://extension-tracker-add-item.jslchng.workers.dev/data.json";
+
+// Fetches the live cost data from Cloudflare KV (via the Worker). Falls back
+// to the EXTENSION_DATA baked into data.js — a frozen snapshot, not kept in
+// sync automatically — if the Worker or KV is unreachable, so the site still
+// shows *something* rather than breaking outright.
+async function loadExtensionData() {
+  try {
+    const res = await fetch(DATA_API_URL, { cache: "no-store" });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (!data || !Array.isArray(data.categories)) throw new Error("malformed response");
+    return data;
+  } catch (err) {
+    console.warn("Could not load live data from Cloudflare KV, falling back to data.js:", err);
+    return EXTENSION_DATA;
+  }
+}
 
 function formatCurrency(n) {
   return CURRENCY + Number(n || 0).toLocaleString("en-GB", {

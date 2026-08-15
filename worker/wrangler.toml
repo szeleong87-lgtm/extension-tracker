@@ -1,0 +1,7 @@
+name = "extension-tracker-add-item"
+main = "worker.js"
+compatibility_date = "2026-08-11"
+
+[[kv_namespaces]]
+binding = "EXTENSION_DATA"
+id = "863ef9907a214723841af96694653cae"
