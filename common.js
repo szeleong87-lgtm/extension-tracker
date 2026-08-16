@@ -1,4 +1,4 @@
-// Shared rendering helpers used by index.html and every category page.
+// Shared rendering helpers used by pages/finance.html and every category page.
 // Cost data (item prices and the overall budget) lives in Cloudflare KV, not
 // in this repo — edit it at the Worker's admin page, and changes show up on
 // next page load, no code change or deploy needed. Category/item *names*
@@ -73,7 +73,7 @@ function budgetStatus(pct) {
   return { key: "ontrack", label: "on track" };
 }
 
-// Renders the budget-vs-drawn-down meter at the top of index.html.
+// Renders the budget-vs-drawn-down meter at the top of pages/finance.html.
 // "Drawn down" is total Actual spend (money that's actually gone out),
 // not the blended Estimate/Actual figure used elsewhere.
 function renderBudget(data, containerEl) {

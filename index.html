@@ -1,31 +1,341 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>Extension Tracker</title>
-  <link rel="stylesheet" href="style.css" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Rear Extension</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#F4EEE3;
+    --cream-deep:#EDE3D2;
+    --panel:#E7DCC7;
+    --ink:#2B2621;
+    --ink-soft:#6E6558;
+    --clay:#B0714B;
+    --clay-deep:#8F5638;
+    --gold:#B4923C;
+    --line:#DCD0B8;
+    --white:#FBF8F2;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--cream);
+    color:var(--ink);
+    font-family:'Jost', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{ background:var(--gold); color:var(--white); }
+  .sheet{ max-width:1180px; margin:0 auto; padding:0 40px; }
+  a{ color:inherit; }
+
+  header{ padding:26px 0; }
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    font-size:13px; color:var(--ink-soft); letter-spacing:0.01em;
+  }
+  .topbar .left, .topbar .right{ display:flex; align-items:center; gap:26px; flex:1; }
+  .topbar .right{ justify-content:flex-end; }
+  .topbar .right a{ text-decoration:none; transition:color .15s ease; }
+  .topbar .right a:hover{ color:var(--clay-deep); }
+  .wordmark{
+    font-family:'Cormorant Garamond', serif;
+    font-size:22px;
+    letter-spacing:0.06em;
+    text-align:center;
+    display:flex; align-items:center; gap:8px; justify-content:center;
+  }
+  .wordmark .sq{ width:7px; height:7px; background:var(--clay); display:inline-block; }
+
+  .hero{ text-align:center; padding:56px 0 44px; }
+  .eyebrow{
+    font-size:13px; color:var(--clay-deep); letter-spacing:0.04em; margin-bottom:18px;
+  }
+  h1{
+    font-family:'Cormorant Garamond', serif;
+    font-weight:500;
+    font-size:64px;
+    line-height:1.08;
+    letter-spacing:0.01em;
+    text-transform:uppercase;
+    margin-bottom:26px;
+  }
+  .hero-sub{
+    font-size:17px; color:var(--ink-soft); font-weight:300;
+    max-width:44ch; margin:0 auto;
+  }
+
+  .hero-art{ position:relative; margin-top:52px; }
+  .hero-art .frame{
+    background:linear-gradient(180deg, #E3D5BC 0%, #D9C7A6 100%);
+    height:560px;
+    overflow:hidden;
+    position:relative;
+  }
+  .hero-art svg{ position:absolute; inset:0; width:100%; height:100%; }
+  .badge{
+    position:absolute;
+    top:-38px; left:50%; transform:translateX(-50%);
+    width:150px; height:150px; border-radius:50%;
+    background:var(--white);
+    display:flex; align-items:center; justify-content:center;
+    text-align:center;
+    font-size:13.5px;
+    text-decoration:none;
+    color:var(--ink);
+    box-shadow:0 20px 40px -18px rgba(43,38,33,0.35);
+    border:1px solid var(--line);
+    transition:transform .2s ease, background .2s ease;
+  }
+  .badge:hover{ transform:translateX(-50%) scale(1.05); background:var(--clay); color:var(--white); }
+  .badge span{ text-decoration:underline; text-underline-offset:3px; }
+
+  .about{ padding:96px 0 40px; display:grid; grid-template-columns:0.85fr 1.15fr; gap:64px; }
+  .about-label{ font-size:13px; color:var(--ink-soft); margin-bottom:14px; }
+  .about h2{
+    font-family:'Cormorant Garamond', serif;
+    font-weight:500;
+    font-size:34px;
+    text-transform:uppercase;
+    line-height:1.2;
+    letter-spacing:0.01em;
+    margin-bottom:28px;
+  }
+  .about-photo{
+    background:linear-gradient(160deg, #D6C6A5, #C9B48A);
+    aspect-ratio:3/3.7;
+    position:relative;
+    overflow:hidden;
+  }
+  .about-photo svg{ position:absolute; inset:0; width:100%; height:100%; }
+  .about-copy p{ font-size:15.5px; line-height:1.75; color:var(--ink-soft); font-weight:300; margin-bottom:20px; }
+  .about-copy p b{ color:var(--ink); font-weight:500; }
+  .btn{
+    display:inline-block;
+    background:var(--ink);
+    color:var(--white);
+    text-decoration:none;
+    font-size:13.5px;
+    padding:15px 28px;
+    margin-top:8px;
+    letter-spacing:0.02em;
+    transition:background .15s ease;
+  }
+  .btn:hover{ background:var(--clay-deep); }
+
+  .stage-strip{ display:flex; gap:22px; margin-top:34px; flex-wrap:wrap; }
+  .stage-pill{
+    font-size:11.5px; letter-spacing:0.03em; color:var(--ink-soft);
+    padding:7px 14px; border:1px solid var(--line); border-radius:20px;
+  }
+  .stage-pill.now{ background:var(--ink); color:var(--white); border-color:var(--ink); }
+
+  .milestones{ padding:70px 0 100px; border-top:1px solid var(--line); margin-top:60px; }
+  .milestones-head{ display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:36px; flex-wrap:wrap; gap:16px; }
+  .milestones-head a{
+    font-family:'Cormorant Garamond', serif;
+    font-size:24px;
+    text-decoration:underline;
+    text-decoration-color:var(--clay);
+    text-underline-offset:6px;
+  }
+  .milestone-list{ list-style:none; }
+  .milestone-list li{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:18px 0; border-bottom:1px solid var(--line);
+    font-size:15px; font-weight:300; color:var(--ink-soft);
+  }
+  .milestone-list li b{ font-weight:500; color:var(--ink); }
+  .milestone-list .dot{
+    width:7px; height:7px; border-radius:50%; background:var(--line); margin-right:14px; flex-shrink:0;
+  }
+  .milestone-list li.done .dot{ background:var(--clay); }
+  .milestone-list li{ position:relative; }
+  .milestone-name{ display:flex; align-items:center; }
+  .milestone-date{ font-size:12.5px; letter-spacing:0.03em; color:var(--ink-soft); }
+
+  .cards{ padding:0 0 90px; display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
+  .card{
+    border:1px solid var(--line);
+    padding:30px 26px;
+    text-decoration:none;
+    color:var(--ink);
+    display:flex; flex-direction:column; gap:12px;
+    transition:border-color .18s ease, transform .18s ease;
+  }
+  .card:hover{ border-color:var(--clay); transform:translateY(-3px); }
+  .card-eyebrow{ font-size:12px; color:var(--clay-deep); }
+  .card h3{ font-family:'Cormorant Garamond', serif; font-weight:500; font-size:26px; text-transform:uppercase; }
+  .card p{ font-size:14px; color:var(--ink-soft); font-weight:300; line-height:1.6; }
+  .card .go{ margin-top:auto; font-size:12.5px; letter-spacing:0.03em; padding-top:14px; }
+
+  footer{
+    border-top:1px solid var(--line);
+    padding:26px 0 50px;
+    font-size:12px; color:var(--ink-soft);
+    display:flex; justify-content:space-between;
+  }
+
+  @media (max-width: 860px){
+    .topbar{ flex-direction:column; gap:14px; }
+    .topbar .left, .topbar .right{ justify-content:center; }
+    h1{ font-size:40px; }
+    .about{ grid-template-columns:1fr; }
+    .cards{ grid-template-columns:1fr; }
+    .hero-art .frame{ height:360px; }
+  }
+</style>
 </head>
 <body>
-  <main>
-    <h1>Extension</h1>
-    <p class="subtitle">Project cost tracker</p>
-    <nav class="crumbs">
+
+<header>
+  <div class="sheet topbar">
+    <div class="left">
+      <span>Semi-detached</span>
+      <span>·</span>
+      <span>27.0 m² new floor area</span>
+    </div>
+    <div class="wordmark">
+      <span class="sq"></span> THE REAR EXTENSION
+    </div>
+    <div class="right">
+      <a href="#overview">Overview</a>
       <a href="pages/plans.html">Plans</a>
-      &middot;
-      <a href="https://extension-tracker-add-item.jslchng.workers.dev/" target="_blank" rel="noopener">Manage prices &amp; budget &#8599;</a>
-    </nav>
+      <a href="pages/finance.html">Finance</a>
+      <a href="pages/photos.html">Photos</a>
+    </div>
+  </div>
+</header>
 
-    <div id="budget"></div>
-    <div id="summary"></div>
-  </main>
+<section class="sheet hero" id="overview">
+  <div class="eyebrow">~ We're building ~</div>
+  <h1>One open room<br>for the whole house</h1>
+  <p class="hero-sub">A ground floor rear extension, tracked from foundations to finishes — kitchen, family and dining, opened into one bright space.</p>
 
-  <script src="data.js"></script>
-  <script src="common.js"></script>
-  <script>
-    loadExtensionData().then((data) => {
-      renderBudget(data, document.getElementById("budget"));
-      renderSummary(data, document.getElementById("summary"));
-    });
-  </script>
+  <div class="hero-art">
+    <a href="pages/plans.html" class="badge"><span>See the&nbsp;plans</span></a>
+    <div class="frame">
+      <svg viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid slice">
+        <rect width="1000" height="560" fill="#DFCFAE"/>
+        <rect x="0" y="0" width="1000" height="230" fill="#E8DCC0"/>
+        <circle cx="620" cy="110" r="130" fill="#F1E6CC" opacity="0.7"/>
+        <rect x="0" y="420" width="1000" height="140" fill="#C7AF83"/>
+        <g stroke="#B79E71" stroke-width="2">
+          <line x1="0" y1="450" x2="1000" y2="450"/>
+          <line x1="0" y1="480" x2="1000" y2="480"/>
+          <line x1="0" y1="510" x2="1000" y2="510"/>
+          <line x1="0" y1="540" x2="1000" y2="540"/>
+        </g>
+        <g stroke="#7C6A4C" stroke-width="3">
+          <line x1="430" y1="60" x2="430" y2="430"/>
+          <line x1="560" y1="60" x2="560" y2="430"/>
+          <line x1="690" y1="60" x2="690" y2="430"/>
+          <line x1="820" y1="60" x2="820" y2="430"/>
+          <line x1="950" y1="60" x2="950" y2="430"/>
+        </g>
+        <rect x="430" y="60" width="520" height="370" fill="#EFE6D2" opacity="0.35"/>
+        <rect x="430" y="60" width="520" height="200" fill="#A9B98C" opacity="0.45"/>
+        <rect x="110" y="330" width="230" height="90" rx="3" fill="#F4EEE3" stroke="#8F5638" stroke-width="2"/>
+        <rect x="130" y="290" width="60" height="40" fill="none" stroke="#8F5638" stroke-width="1.5" stroke-dasharray="4 4"/>
+        <rect x="220" y="290" width="60" height="40" fill="none" stroke="#8F5638" stroke-width="1.5" stroke-dasharray="4 4"/>
+        <line x1="160" y1="60" x2="160" y2="230" stroke="#5C4E39" stroke-width="1.5"/>
+        <circle cx="160" cy="240" r="12" fill="#3A2F22"/>
+        <line x1="260" y1="60" x2="260" y2="230" stroke="#5C4E39" stroke-width="1.5"/>
+        <circle cx="260" cy="240" r="12" fill="#3A2F22"/>
+        <circle cx="150" cy="450" r="16" fill="#8F5638"/>
+        <circle cx="200" cy="450" r="16" fill="#8F5638"/>
+        <circle cx="250" cy="450" r="16" fill="#8F5638"/>
+        <path d="M 60 380 Q 40 300 70 250 Q 90 300 80 380 Z" fill="#7C8F5E"/>
+        <path d="M 60 380 Q 90 310 110 270 Q 100 330 90 380 Z" fill="#8FA36C"/>
+        <rect x="55" y="378" width="35" height="40" fill="#B0714B"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<section class="sheet about">
+  <div class="about-photo">
+    <svg viewBox="0 0 400 500" preserveAspectRatio="xMidYMid slice">
+      <rect width="400" height="500" fill="#D2C09B"/>
+      <rect x="0" y="0" width="400" height="230" fill="#DACBA5"/>
+      <rect x="60" y="60" width="280" height="150" fill="#EFE6D2" opacity="0.5" stroke="#7C6A4C" stroke-width="3"/>
+      <line x1="200" y1="60" x2="200" y2="210" stroke="#7C6A4C" stroke-width="2"/>
+      <rect x="60" y="60" width="280" height="90" fill="#C9D6B0" opacity="0.6"/>
+      <g stroke="#8F5638" stroke-width="2">
+        <line x1="40" y1="300" x2="180" y2="300"/>
+        <line x1="40" y1="340" x2="180" y2="340"/>
+        <line x1="40" y1="380" x2="180" y2="380"/>
+      </g>
+      <rect x="55" y="285" width="18" height="26" fill="#B0714B" opacity="0.7"/>
+      <rect x="85" y="285" width="18" height="26" fill="#8F5638" opacity="0.7"/>
+      <rect x="115" y="320" width="18" height="18" fill="#B0714B" opacity="0.6"/>
+      <circle cx="290" cy="330" r="34" fill="none" stroke="#7C6A4C" stroke-width="3"/>
+      <circle cx="290" cy="330" r="24" fill="none" stroke="#7C6A4C" stroke-width="1.5"/>
+      <rect x="240" y="380" width="130" height="80" fill="#C7B489"/>
+    </svg>
+  </div>
+  <div>
+    <div class="about-label">~ About the project ~</div>
+    <h2>Reorganising the ground floor, room by room</h2>
+    <div class="about-copy">
+      <p><b>This 6.0 × 4.5m extension opens the back of the house into one bright, connected space.</b> The old kitchen becomes a pantry and utility room, while the new footprint holds an open-plan kitchen, family and dining area — lit by rooflights over the island and a full run of bifold doors onto the garden, with a fixed picture window along the side wall.</p>
+      <p>Designed from a RICS measured survey, refined through a run of floor-plan iterations before settling on the current layout.</p>
+    </div>
+    <div class="stage-strip">
+      <span class="stage-pill">Foundations</span>
+      <span class="stage-pill">Structure</span>
+      <span class="stage-pill now">Roof — in progress</span>
+      <span class="stage-pill">First fix</span>
+      <span class="stage-pill">Second fix</span>
+      <span class="stage-pill">Finishes</span>
+    </div>
+    <a href="pages/finance.html" class="btn">View finance tracker</a>
+  </div>
+</section>
+
+<section class="sheet milestones">
+  <div class="milestones-head">
+    <a href="pages/photos.html">Build milestones and next steps</a>
+  </div>
+  <ul class="milestone-list">
+    <li class="done"><span class="milestone-name"><span class="dot"></span><b>Foundations poured</b></span><span class="milestone-date">Complete</span></li>
+    <li class="done"><span class="milestone-name"><span class="dot"></span><b>Structural shell up</b></span><span class="milestone-date">Complete</span></li>
+    <li><span class="milestone-name"><span class="dot"></span><b>Roof structure and rooflights</b></span><span class="milestone-date">In progress</span></li>
+    <li><span class="milestone-name"><span class="dot"></span><b>First fix — electrics and plumbing</b></span><span class="milestone-date">Upcoming</span></li>
+    <li><span class="milestone-name"><span class="dot"></span><b>Bifold doors and picture window installed</b></span><span class="milestone-date">Upcoming</span></li>
+    <li><span class="milestone-name"><span class="dot"></span><b>Second fix and finishes</b></span><span class="milestone-date">Upcoming</span></li>
+  </ul>
+</section>
+
+<section class="sheet cards">
+  <a class="card" href="pages/plans.html">
+    <div class="card-eyebrow">Drawings</div>
+    <h3>Plans</h3>
+    <p>Floor plans, elevations and the RICS survey — every revision, in order.</p>
+    <div class="go">Open →</div>
+  </a>
+  <a class="card" href="pages/finance.html">
+    <div class="card-eyebrow">Budget</div>
+    <h3>Finance</h3>
+    <p>Quotes, spend against budget, and what's left across each stage.</p>
+    <div class="go">Open →</div>
+  </a>
+  <a class="card" href="pages/photos.html">
+    <div class="card-eyebrow">Site record</div>
+    <h3>Photos</h3>
+    <p>Progress shots by stage, from first dig to the finished room.</p>
+    <div class="go">Open →</div>
+  </a>
+</section>
+
+<footer>
+  <div class="sheet" style="display:flex; justify-content:space-between; width:100%;">
+    <span>The Rear Extension — project index</span>
+    <span>Roof stage · in progress</span>
+  </div>
+</footer>
+
 </body>
 </html>

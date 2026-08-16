@@ -23,7 +23,7 @@
 // ---------------------------------------------------------------------------
 
 const EXTENSION_DATA = {
-  // Total funds available for the whole project. index.html shows this
+  // Total funds available for the whole project. pages/finance.html shows this
   // against "drawn down" (total Actual spend) so you can see how much
   // budget is left.
   budget: 90000, // TODO: set your real total budget here, e.g. 60000
