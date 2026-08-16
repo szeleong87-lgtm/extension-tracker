@@ -12,16 +12,31 @@
     <p class="subtitle">Architectural drawings and plans</p>
 
     <!--
-      To add a drawing:
-        1. Put the file (PDF, JPG, whatever) in the drawings/ folder, next
-           to this pages/ folder at the repo root.
-        2. Add a line to the list below:
-             <li><a href="../drawings/your-file.pdf">Your Drawing Name</a></li>
-        3. Delete the "No drawings yet" line once you've added the first one.
+      Each drawing is a single-page PDF embedded inline via <iframe> (so it
+      shows on the page itself, not just as a download link) — the browser's
+      built-in PDF viewer handles scrolling/zooming.
+
+      To add another drawing:
+        1. Put the single-page PDF in the drawings/ folder, next to this
+           pages/ folder at the repo root. (If you're starting from a
+           multi-page PDF, extract just the page you want first — e.g. with
+           `qpdf --empty --pages source.pdf N -- drawings/name.pdf`.)
+        2. Copy one of the <section class="plan-drawing"> blocks below and
+           point its <iframe src> at the new file.
     -->
-    <ul class="plans-list">
-    </ul>
-    <p class="muted">No drawings yet — add files to the <code>drawings/</code> folder and list them here.</p>
+    <section class="plan-drawing">
+      <h2>Current</h2>
+      <div class="plan-embed">
+        <iframe src="../drawings/current.pdf" title="Current ground floor plan"></iframe>
+      </div>
+    </section>
+
+    <section class="plan-drawing">
+      <h2>Proposed</h2>
+      <div class="plan-embed">
+        <iframe src="../drawings/proposed.pdf" title="Proposed ground floor plan"></iframe>
+      </div>
+    </section>
   </main>
 </body>
 </html>

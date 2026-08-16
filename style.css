@@ -238,3 +238,28 @@ code {
   border-radius: 4px;
   font-size: 0.9em;
 }
+
+.plan-drawing {
+  margin-bottom: 2rem;
+}
+
+.plan-drawing h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 0.6rem;
+}
+
+.plan-embed {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--panel);
+}
+
+.plan-embed iframe {
+  display: block;
+  width: 100%;
+  height: 75vh;
+  min-height: 500px;
+  border: none;
+}
