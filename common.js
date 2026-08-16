@@ -1,8 +1,9 @@
-// Shared rendering helpers used by pages/finance.html and every category page.
-// Cost data (item prices and the overall budget) lives in Cloudflare KV, not
-// in this repo — edit it at the Worker's admin page, and changes show up on
-// next page load, no code change or deploy needed. Category/item *names*
-// still live in data.js. There is no editing on the page itself.
+// Shared rendering helpers used by index.html, pages/finance.html, and every
+// category page. Cost data (item prices, the overall budget, and milestone
+// statuses) lives in Cloudflare KV, not in this repo — edit it at the
+// Worker's admin page, and changes show up on next page load, no code
+// change or deploy needed. Category/item/milestone *names* still live in
+// data.js. There is no editing on the page itself.
 
 const CURRENCY = "£";
 
@@ -163,4 +164,36 @@ function renderCategory(category, containerEl) {
         <tr><th colspan="3">Subtotal</th><th class="num">${formatCurrency(categoryTotal(category))}</th></tr>
       </tfoot>
     </table>`;
+}
+
+// Shown in the milestone list's date column when a milestone has no date set.
+const MILESTONE_STATUS_LABEL = {
+  done: "Complete",
+  "in-progress": "In progress",
+  upcoming: "Upcoming",
+};
+
+// Renders the home page's milestone list (index.html's <ul class="milestone-list">).
+function renderMilestones(data, containerEl) {
+  const milestones = data.milestones || [];
+  containerEl.innerHTML = milestones
+    .map((m) => {
+      const label = m.date || MILESTONE_STATUS_LABEL[m.status] || "";
+      return `
+      <li class="${m.status}">
+        <span class="milestone-name"><span class="dot"></span><b>${m.name}</b></span>
+        <span class="milestone-date">${label}</span>
+      </li>`;
+    })
+    .join("");
+}
+
+// Renders the home page's stage-pill row (index.html's <div class="stage-strip">)
+// from the same milestone data — whichever one is "in-progress" gets the
+// "now" highlight.
+function renderStagePills(data, containerEl) {
+  const milestones = data.milestones || [];
+  containerEl.innerHTML = milestones
+    .map((m) => `<span class="stage-pill${m.status === "in-progress" ? " now" : ""}">${m.name}</span>`)
+    .join("");
 }

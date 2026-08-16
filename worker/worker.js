@@ -1,13 +1,15 @@
 // Cloudflare Worker: reads/writes the extension-tracker's cost data from a
 // Workers KV namespace, instead of that data living hardcoded in data.js.
 //
-// - GET  /data.json    — public, CORS-enabled JSON of the current data.
-//                         The site's pages fetch this at load time.
-// - GET  /             — password-gated admin page: add an item, edit an
-//                         existing item's price, or edit the overall budget.
-// - POST /submit       — add a new item.
-// - POST /edit-price   — update an existing item's estimate/actual.
-// - POST /edit-budget  — update the overall budget.
+// - GET  /data.json      — public, CORS-enabled JSON of the current data.
+//                           The site's pages fetch this at load time.
+// - GET  /               — password-gated admin page: add an item, edit an
+//                           existing item's price, edit the overall budget,
+//                           or update a milestone's status.
+// - POST /submit         — add a new item.
+// - POST /edit-price     — update an existing item's estimate/actual.
+// - POST /edit-budget    — update the overall budget.
+// - POST /edit-milestone — update an existing milestone's status/date.
 //
 // Changes here take effect immediately (no git commit, no CI/CD wait).
 // data.js in the repo is kept only as a static fallback in case this Worker
@@ -32,6 +34,11 @@ const CATEGORIES = [
   { id: "snug", name: "Snug" },
 ];
 
+// Valid milestone statuses. Adding/removing/reordering a milestone itself
+// (as opposed to updating its status) isn't exposed as a form here — edit
+// data.milestones directly in KV, or data.js's fallback, for that.
+const MILESTONE_STATUSES = ["upcoming", "in-progress", "done"];
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -54,6 +61,10 @@ export default {
 
     if (request.method === "POST" && url.pathname === "/edit-budget") {
       return handleEditBudget(request, env);
+    }
+
+    if (request.method === "POST" && url.pathname === "/edit-milestone") {
+      return handleEditMilestone(request, env);
     }
 
     return new Response("Not found", { status: 404 });
@@ -120,6 +131,15 @@ async function renderAdminPage(env, message) {
     itemsByCategory[cat.id] = cat.items.map((i) => ({ name: i.name, estimate: i.estimate, actual: i.actual }));
   });
   const itemsJson = JSON.stringify(itemsByCategory).replace(/</g, "\\u003c");
+
+  const milestones = data.milestones || [];
+  const milestoneOptions = milestones.map((m) => `<option value="${m.name}">${m.name}</option>`).join("");
+  const milestoneStatusOptions = MILESTONE_STATUSES.map((s) => `<option value="${s}">${s}</option>`).join("");
+  const milestonesByName = {};
+  milestones.forEach((m) => {
+    milestonesByName[m.name] = { status: m.status, date: m.date || "" };
+  });
+  const milestonesJson = JSON.stringify(milestonesByName).replace(/</g, "\\u003c");
 
   return html(`<!DOCTYPE html>
 <html>
@@ -201,6 +221,25 @@ async function renderAdminPage(env, message) {
     </form>
   </section>
 
+  <section>
+    <h2>Update a milestone</h2>
+    <form method="POST" action="/edit-milestone">
+      <label>Milestone
+        <select name="name" id="em-name">${milestoneOptions}</select>
+      </label>
+      <label>Status
+        <select name="status" id="em-status">${milestoneStatusOptions}</select>
+      </label>
+      <label>Date <span style="font-weight:normal">(optional — shown instead of the status label, e.g. once it's done)</span>
+        <input type="text" name="date" id="em-date" placeholder="e.g. 12 Aug 2026" />
+      </label>
+      <label>Password
+        <input type="password" name="password" required />
+      </label>
+      <button type="submit">Update milestone</button>
+    </form>
+  </section>
+
   <script>
     const ITEMS = ${itemsJson};
     const categorySelect = document.getElementById("ep-category");
@@ -228,6 +267,22 @@ async function renderAdminPage(env, message) {
     categorySelect.addEventListener("change", populateItems);
     itemSelect.addEventListener("change", prefill);
     populateItems();
+
+    const MILESTONES = ${milestonesJson};
+    const milestoneSelect = document.getElementById("em-name");
+    const statusSelect = document.getElementById("em-status");
+    const dateInput = document.getElementById("em-date");
+
+    function prefillMilestone() {
+      const m = MILESTONES[milestoneSelect.value];
+      if (m) {
+        statusSelect.value = m.status;
+        dateInput.value = m.date;
+      }
+    }
+
+    milestoneSelect.addEventListener("change", prefillMilestone);
+    prefillMilestone();
   </script>
 </body>
 </html>`);
@@ -312,6 +367,32 @@ async function handleEditBudget(request, env) {
   await writeData(env, data);
 
   return renderAdminPage(env, `<div class="message success">Updated budget to ${budget}.</div>`);
+}
+
+async function handleEditMilestone(request, env) {
+  const form = await request.formData();
+  const password = form.get("password");
+  const name = (form.get("name") || "").toString().trim();
+  const status = (form.get("status") || "").toString().trim();
+  const date = (form.get("date") || "").toString().trim();
+
+  if (password !== env.FORM_PASSWORD) {
+    return renderAdminPage(env, `<div class="message error">Wrong password.</div>`);
+  }
+  if (!MILESTONE_STATUSES.includes(status)) {
+    return renderAdminPage(env, `<div class="message error">Unknown status "${escapeHtml(status)}".</div>`);
+  }
+
+  const data = await readData(env);
+  const milestone = (data.milestones || []).find((m) => m.name === name);
+  if (!milestone) {
+    return renderAdminPage(env, `<div class="message error">Could not find milestone "${escapeHtml(name)}".</div>`);
+  }
+  milestone.status = status;
+  milestone.date = date;
+  await writeData(env, data);
+
+  return renderAdminPage(env, `<div class="message success">Updated "${escapeHtml(name)}" to ${escapeHtml(status)}.</div>`);
 }
 
 function escapeHtml(s) {

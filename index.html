@@ -152,6 +152,8 @@
     width:7px; height:7px; border-radius:50%; background:var(--line); margin-right:14px; flex-shrink:0;
   }
   .milestone-list li.done .dot{ background:var(--clay); }
+  .milestone-list li.in-progress .dot{ background:var(--gold); }
+  .milestone-list li.in-progress b{ color:var(--clay-deep); }
   .milestone-list li{ position:relative; }
   .milestone-name{ display:flex; align-items:center; }
   .milestone-date{ font-size:12.5px; letter-spacing:0.03em; color:var(--ink-soft); }
@@ -283,14 +285,7 @@
       <p><b>This 6.0 × 4.5m extension opens the back of the house into one bright, connected space.</b> The old kitchen becomes a pantry and utility room, while the new footprint holds an open-plan kitchen, family and dining area — lit by rooflights over the island and a full run of bifold doors onto the garden, with a fixed picture window along the side wall.</p>
       <p>Designed from a RICS measured survey, refined through a run of floor-plan iterations before settling on the current layout.</p>
     </div>
-    <div class="stage-strip">
-      <span class="stage-pill">Foundations</span>
-      <span class="stage-pill">Structure</span>
-      <span class="stage-pill now">Roof — in progress</span>
-      <span class="stage-pill">First fix</span>
-      <span class="stage-pill">Second fix</span>
-      <span class="stage-pill">Finishes</span>
-    </div>
+    <div class="stage-strip"></div>
     <a href="pages/finance.html" class="btn">View finance tracker</a>
   </div>
 </section>
@@ -299,14 +294,7 @@
   <div class="milestones-head">
     <a href="pages/photos.html">Build milestones and next steps</a>
   </div>
-  <ul class="milestone-list">
-    <li class="done"><span class="milestone-name"><span class="dot"></span><b>Foundations poured</b></span><span class="milestone-date">Complete</span></li>
-    <li class="done"><span class="milestone-name"><span class="dot"></span><b>Structural shell up</b></span><span class="milestone-date">Complete</span></li>
-    <li><span class="milestone-name"><span class="dot"></span><b>Roof structure and rooflights</b></span><span class="milestone-date">Upcoming</span></li>
-    <li><span class="milestone-name"><span class="dot"></span><b>First fix — electrics and plumbing</b></span><span class="milestone-date">Upcoming</span></li>
-    <li><span class="milestone-name"><span class="dot"></span><b>Bifold doors and picture window installed</b></span><span class="milestone-date">Upcoming</span></li>
-    <li><span class="milestone-name"><span class="dot"></span><b>Second fix and finishes</b></span><span class="milestone-date">Upcoming</span></li>
-  </ul>
+  <ul class="milestone-list"></ul>
 </section>
 
 <section class="sheet cards">
@@ -333,9 +321,23 @@
 <footer>
   <div class="sheet" style="display:flex; justify-content:space-between; width:100%;">
     <span>The Rear Extension — project index</span>
-    <span>Roof stage · in progress</span>
+    <span id="current-stage"></span>
   </div>
 </footer>
+
+<script src="data.js"></script>
+<script src="common.js"></script>
+<script>
+  loadExtensionData().then((data) => {
+    renderMilestones(data, document.querySelector(".milestone-list"));
+    renderStagePills(data, document.querySelector(".stage-strip"));
+
+    const current = (data.milestones || []).find((m) => m.status === "in-progress");
+    document.getElementById("current-stage").textContent = current
+      ? `${current.name} · in progress`
+      : "";
+  });
+</script>
 
 </body>
 </html>

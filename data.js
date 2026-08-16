@@ -1,11 +1,12 @@
 // ---------------------------------------------------------------------------
 // Extension cost data — FALLBACK ONLY.
 //
-// The live numbers (budget, estimate, actual) now live in Cloudflare KV, not
-// here — edit them at https://extension-tracker-add-item.jslchng.workers.dev/
-// and changes appear on next page load, no commit or deploy needed. Every
-// page fetches that live data first (see loadExtensionData() in common.js)
-// and only falls back to this file if the Worker/KV is unreachable.
+// The live numbers (budget, estimate, actual, milestone statuses) now live
+// in Cloudflare KV, not here — edit them at
+// https://extension-tracker-add-item.jslchng.workers.dev/ and changes appear
+// on next page load, no commit or deploy needed. Every page fetches that
+// live data first (see loadExtensionData() in common.js) and only falls
+// back to this file if the Worker/KV is unreachable.
 //
 // Because of that, this file is a frozen snapshot — it is NOT kept in sync
 // with KV automatically, and editing numbers here has no effect on the live
@@ -27,6 +28,22 @@ const EXTENSION_DATA = {
   // against "drawn down" (total Actual spend) so you can see how much
   // budget is left.
   budget: 90000, // TODO: set your real total budget here, e.g. 60000
+
+  // The home page's milestone list and stage pills, in order. status is one
+  // of "done" / "in-progress" / "upcoming". date is optional — shown instead
+  // of the generic status label when set (e.g. once something's done).
+  milestones: [
+    { name: "Plans drawn", status: "in-progress", date: "" },
+    { name: "Planning permission", status: "upcoming", date: "" },
+    { name: "Quotes", status: "upcoming", date: "" },
+    { name: "Foundations poured", status: "upcoming", date: "" },
+    { name: "Structural shell up", status: "upcoming", date: "" },
+    { name: "Knock through", status: "upcoming", date: "" },
+    { name: "First fix", status: "upcoming", date: "" },
+    { name: "Glazing", status: "upcoming", date: "" },
+    { name: "Kitchen install", status: "upcoming", date: "" },
+    { name: "Second fix and decorating", status: "upcoming", date: "" },
+  ],
 
   categories: [
     {
