@@ -12,30 +12,32 @@
     <p class="subtitle">Architectural drawings and plans</p>
 
     <!--
-      Each drawing is a single-page PDF embedded inline via <iframe> (so it
-      shows on the page itself, not just as a download link) — the browser's
-      built-in PDF viewer handles scrolling/zooming.
+      Each drawing is a PNG rendered from a single-page PDF, so it shows
+      directly as an image — no PDF viewer widget. Each one links to the
+      original PDF (opens in a new tab) for a lossless/zoomable copy.
 
       To add another drawing:
-        1. Put the single-page PDF in the drawings/ folder, next to this
-           pages/ folder at the repo root. (If you're starting from a
-           multi-page PDF, extract just the page you want first — e.g. with
-           `qpdf --empty --pages source.pdf N -- drawings/name.pdf`.)
-        2. Copy one of the <section class="plan-drawing"> blocks below and
-           point its <iframe src> at the new file.
+        1. Get it down to a single-page PDF (if it isn't already) — e.g.
+           `qpdf --empty --pages source.pdf N -- drawings/name.pdf`.
+        2. Rasterize it to a PNG:
+           `pdftoppm -png -scale-to-x 2000 -scale-to-y -1 drawings/name.pdf drawings/name`
+           (this names the output drawings/name-1.png — rename it to
+           drawings/name.png.)
+        3. Copy one of the <section class="plan-drawing"> blocks below and
+           point its <img src>/<a href> at the new files.
     -->
     <section class="plan-drawing">
       <h2>Current</h2>
-      <div class="plan-embed">
-        <iframe src="../drawings/current.pdf" title="Current ground floor plan"></iframe>
-      </div>
+      <a class="plan-embed" href="../drawings/current.pdf" target="_blank" rel="noopener">
+        <img src="../drawings/current.png" alt="Current ground floor plan" />
+      </a>
     </section>
 
     <section class="plan-drawing">
       <h2>Proposed</h2>
-      <div class="plan-embed">
-        <iframe src="../drawings/proposed.pdf" title="Proposed ground floor plan"></iframe>
-      </div>
+      <a class="plan-embed" href="../drawings/proposed.pdf" target="_blank" rel="noopener">
+        <img src="../drawings/proposed.png" alt="Proposed ground floor plan" />
+      </a>
     </section>
   </main>
 </body>
